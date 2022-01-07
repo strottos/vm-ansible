@@ -1,0 +1,19 @@
+- name: Run apt update
+  apt:
+    update_cache: "yes"
+    upgrade: "yes"
+    cache_valid_time: 86400
+  become: true
+
+- name: Install apt packages
+  apt:
+    name:
+      - apt-utils
+      - aptitude
+      - apt-transport-https
+      - lzip
+      - meld
+      - python3
+      - silversearcher-ag
+    state: latest
+  become: true

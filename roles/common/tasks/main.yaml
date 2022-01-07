@@ -1,0 +1,22 @@
+---
+- name: Install Generic packages
+  package:
+    name:
+      - ca-certificates
+      - curl
+      - wget
+      - zsh
+    state: latest
+  become: true
+- name: Install Debian packages
+  include: debian.yaml
+  when: ansible_os_family == "Debian"
+- name: Install Redhat packages
+  include: redhat.yaml
+  when: ansible_os_family == "RedHat"
+- name: Add user
+  user:
+    name: strotter
+    home: /home/strotter
+    shell: /bin/zsh
+  become: true

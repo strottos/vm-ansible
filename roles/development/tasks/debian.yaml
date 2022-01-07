@@ -1,0 +1,79 @@
+- name: Add specified repository into sources list
+  ansible.builtin.apt_repository:
+    repo: ppa:neovim-ppa/stable
+    state: present
+
+- name: Install Debian Packages
+  apt:
+    name:
+      - ack-grep
+      - acl
+      - blt-dev
+      - build-essential
+      - cargo
+      - clang-9
+      - clang-format-9
+      - clang-tidy-9
+      - clang-tools-9
+      - diffstat
+      - docutils-common
+      - golang
+      - git
+      - liblz-dev
+      - libbz2-dev
+      - libcanberra-gtk-module
+      - libclang-9-dev
+      - libedit-dev
+      - libffi-dev
+      - liblzma-dev
+      - libmpdec-dev
+      - libncurses-dev
+      - libncursesw5-dev
+      - libreadline-dev
+      - libsqlite3-dev
+      - lldb-9
+      - make
+      - neovim
+      - net-tools
+      - snapd
+      - virtualenv
+      - zlib1g-dev
+    state: latest
+  become: true
+
+- name: Install cmake
+  community.general.snap:
+    name:
+      - cmake
+    classic: true
+  become: true
+
+##########################################
+# Setup nodejs and npm TODO...
+##########################################
+#- name: Add nodejs key
+#  apt_key:
+#    url: "https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280"
+#    state: present
+#    id: "68576280"
+#  become: true
+#  when: ansible_distribution == "Ubuntu"
+#
+#- name: Add nodejs deb repository
+#  apt_repository:
+#    repo: 'deb https://deb.nodesource.com/node_6.x {{ ansible_distribution_release }} main'
+#    state: present
+#  become: true
+#
+#- name: Add nodejs deb-src repository
+#  apt_repository:
+#    repo: 'deb-src https://deb.nodesource.com/node_6.x {{ ansible_distribution_release }} main'
+#    state: present
+#  become: true
+#
+#- name: Install nodejs
+#  apt:
+#    name: nodejs
+#    state: latest
+#    update_cache: yes
+#  become: true

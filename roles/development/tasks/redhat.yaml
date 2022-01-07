@@ -1,0 +1,8 @@
+- name: Install RedHat Packages
+  yum: name={{ item }} state=latest
+  with_items:
+  - ack
+  - ncurses-devel
+  - readline-devel
+  - "@Development Tools"
+  become: true

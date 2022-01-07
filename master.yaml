@@ -1,0 +1,17 @@
+- hosts: azurevm_hosts
+  user: azureuser
+  roles:
+  - common
+  - development
+
+- hosts: ec2_hosts
+  user: ubuntu
+  roles:
+  - common
+  - development
+
+- hosts: vm_hosts
+  user: steve
+  roles:
+  - common
+  - development

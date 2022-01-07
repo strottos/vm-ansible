@@ -1,0 +1,161 @@
+- name: Install Generic packages
+  package:
+    name:
+      - autoconf
+      - automake
+      - bison
+      - flex
+      - gdb
+      - git
+      - llvm
+      - lldb
+      - m4
+      - make
+      - mercurial
+      - ninja-build
+      - python3-pip
+      - subversion
+      - vim
+    state: latest
+  become: true
+
+- name: Install Debian packages
+  include: debian.yaml
+  when: ansible_os_family == "Debian"
+
+- name: Install Redhat packages
+  include: redhat.yaml
+  when: ansible_os_family == "RedHat"
+
+###########################
+# Rust
+- name: Install rust
+  shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: strotter
+
+###########################
+# Setup terminal
+- name: Check that Oh My Zsh exists
+  stat:
+    path: /home/strotter/.oh-my-zsh
+  register: oh_my_zsh_exists
+
+- name: Install oh-my-zsh
+  shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s --
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: strotter
+  when: not oh_my_zsh_exists.stat.exists
+
+############
+# Setup vim
+- name: Create vim directories
+  file:
+    path: /home/strotter/.vim/autoload
+    state: directory
+    mode: 0755
+  become: true
+  become_user: strotter
+- file:
+    path: /home/strotter/.vim/bundle
+    state: directory
+    mode: 0755
+  become: true
+  become_user: strotter
+- file:
+    path: /home/strotter/.vim/ftplugin
+    state: directory
+    mode: 0755
+  become: true
+  become_user: strotter
+
+- name: Check that pathogen exists
+  stat:
+    path: /home/strotter/.vim/autoload/pathogen.vim
+  register: pathogen_exists
+
+- name: Download pathogen for vim
+  get_url:
+    url: https://tpo.pe/pathogen.vim
+    dest: /home/strotter/.vim/autoload/pathogen.vim
+    mode: 0440
+  become: true
+  become_user: strotter
+  when: not pathogen_exists.stat.exists
+
+- name: Copy vimrc to user directory
+  copy: src=vimrc dest=/home/strotter/.vimrc
+  become: true
+  become_user: strotter
+
+- name: Copy lots of vim files
+  copy: src="{{item}}" dest=/home/strotter/.vim/ftplugin mode=644
+  with_fileglob:
+    - roles/development/files/*.vim
+  become: true
+  become_user: strotter
+#  notify: change owner strotter /home/strotter/.vim
+
+- name: Install PIP modules for Python 3
+  pip:
+    name:
+      - pexpect
+      - six
+      - black
+      - flake8
+      - pylint
+      - pyflakes
+    executable: pip3
+  become: true
+
+- name: Install NERDTree for VIM
+  git:
+    repo: 'https://github.com/scrooloose/nerdtree'
+    dest: /home/strotter/.vim/bundle/nerdtree
+  become: true
+  become_user: strotter
+
+- name: Install ALE for VIM
+  git:
+    repo: 'https://github.com/dense-analysis/ale'
+    dest: /home/strotter/.vim/bundle/ale
+  become: true
+  become_user: strotter
+
+- name: Install gitgutter for VIM
+  git:
+    repo: 'https://github.com/airblade/vim-gitgutter'
+    dest: /home/strotter/.vim/bundle/gitgutter
+  become: true
+  become_user: strotter
+
+- name: Install PADRE for VIM
+  git:
+    repo: 'https://github.com/strottos/vim-padre'
+    dest: /home/strotter/.vim/bundle/padre
+    version: feature/tokio-1.0
+  become: true
+  become_user: strotter
+
+- name: Complete install for VIM - Padre
+  shell: |
+    make
+  args:
+    chdir: /home/strotter/.vim/bundle/padre
+    executable: /bin/bash
+  become: true
+  become_user: strotter
+
+- name: Git configs
+  shell: |
+    git config --global diff.tool vimdiff
+    git config --global difftool.prompt false
+    git config --global alias.d difftool
+  become: true
+  become_user: strotter
