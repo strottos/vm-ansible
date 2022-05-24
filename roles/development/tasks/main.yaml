@@ -37,6 +37,49 @@
   become: true
   become_user: strotter
 
+- name: Check that Rust Analyzer exists
+  stat:
+    path: /home/strotter/code/rust/rust-analyzer
+  register: rust_analyzer
+
+- name: Clone Rust Analyzer
+  shell: |
+    cd ~/code/rust/
+    git clone https://github.com/rust-analyzer/rust-analyzer.git && cd rust-analyzer
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: strotter
+  when: not rust_analyzer.stat.exists
+
+- name: Update and install Rust Analyzer
+  shell: |
+    source ~/.cargo/env
+    cd ~/code/rust/rust-analyzer/
+    git checkout master
+    git pull
+    cargo xtask install --server
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: strotter
+
+###########################
+# NodeJS
+- name: Install "nodsjs" language server
+  community.general.npm:
+    name: typescript
+    global: yes
+  become: true
+
+###########################
+# Python
+- name: Install "pyright" language server
+  community.general.npm:
+    name: pyright
+    global: yes
+  become: true
+
 ###########################
 # Setup terminal
 - name: Check that Oh My Zsh exists
@@ -53,23 +96,32 @@
   become_user: strotter
   when: not oh_my_zsh_exists.stat.exists
 
+- name: Copy zshrc
+  copy:
+    src: "roles/development/files/zshrc"
+    dest: "/home/strotter/.zshrc"
+  become: true
+  become_user: strotter
+
 ############
 # Setup vim
 - name: Create vim directories
   file:
-    path: /home/strotter/.vim/autoload
+    path: /home/strotter/.config/nvim/autoload
     state: directory
     mode: 0755
   become: true
   become_user: strotter
+
 - file:
-    path: /home/strotter/.vim/bundle
+    path: /home/strotter/.config/nvim/bundle
     state: directory
     mode: 0755
   become: true
   become_user: strotter
+
 - file:
-    path: /home/strotter/.vim/ftplugin
+    path: /home/strotter/.config/nvim/ftplugin
     state: directory
     mode: 0755
   become: true
@@ -77,30 +129,25 @@
 
 - name: Check that pathogen exists
   stat:
-    path: /home/strotter/.vim/autoload/pathogen.vim
+    path: /home/strotter/.config/nvim/autoload/pathogen.vim
   register: pathogen_exists
 
 - name: Download pathogen for vim
   get_url:
     url: https://tpo.pe/pathogen.vim
-    dest: /home/strotter/.vim/autoload/pathogen.vim
+    dest: /home/strotter/.config/nvim/autoload/pathogen.vim
     mode: 0440
   become: true
   become_user: strotter
   when: not pathogen_exists.stat.exists
 
-- name: Copy vimrc to user directory
-  copy: src=vimrc dest=/home/strotter/.vimrc
+- name: Copy neovim files to user directory
+  copy: src="roles/development/files/{{item}}" dest="/home/strotter/.config/nvim/{{item}}"
+  loop:
+    - init.vim
+    - ginit.vim
   become: true
   become_user: strotter
-
-- name: Copy lots of vim files
-  copy: src="{{item}}" dest=/home/strotter/.vim/ftplugin mode=644
-  with_fileglob:
-    - roles/development/files/*.vim
-  become: true
-  become_user: strotter
-#  notify: change owner strotter /home/strotter/.vim
 
 - name: Install PIP modules for Python 3
   pip:
@@ -114,43 +161,31 @@
     executable: pip3
   become: true
 
-- name: Install NERDTree for VIM
+- name: Install modules for NeoVim
   git:
-    repo: 'https://github.com/scrooloose/nerdtree'
-    dest: /home/strotter/.vim/bundle/nerdtree
+    repo: "{{ item.repo }}"
+    dest: "/home/strotter/.config/nvim/bundle/{{ item.dest }}"
   become: true
   become_user: strotter
-
-- name: Install ALE for VIM
-  git:
-    repo: 'https://github.com/dense-analysis/ale'
-    dest: /home/strotter/.vim/bundle/ale
-  become: true
-  become_user: strotter
-
-- name: Install gitgutter for VIM
-  git:
-    repo: 'https://github.com/airblade/vim-gitgutter'
-    dest: /home/strotter/.vim/bundle/gitgutter
-  become: true
-  become_user: strotter
-
-- name: Install PADRE for VIM
-  git:
-    repo: 'https://github.com/strottos/vim-padre'
-    dest: /home/strotter/.vim/bundle/padre
-    version: feature/tokio-1.0
-  become: true
-  become_user: strotter
-
-- name: Complete install for VIM - Padre
-  shell: |
-    make
-  args:
-    chdir: /home/strotter/.vim/bundle/padre
-    executable: /bin/bash
-  become: true
-  become_user: strotter
+  loop:
+    - { repo: 'https://github.com/scrooloose/nerdtree', dest: 'nerdtree' }
+    - { repo: 'https://github.com/dense-analysis/ale', dest: 'ale' }
+    - { repo: 'https://github.com/hrsh7th/cmp-buffer', dest: 'cmp-buffer' }
+    - { repo: 'https://github.com/hrsh7th/cmp-cmdline', dest: 'cmp-cmdline' }
+    - { repo: 'https://github.com/hrsh7th/cmp-nvim-lsp', dest: 'cmp-nvim-lsp' }
+    - { repo: 'https://github.com/hrsh7th/cmp-path', dest: 'cmp-path' }
+    - { repo: 'https://github.com/hrsh7th/cmp-vsnip', dest: 'cmp-vsnip' }
+    - { repo: 'https://github.com/saadparwaiz1/cmp_luasnip', dest: 'cmp_luasnip' }
+    - { repo: 'https://github.com/L3MON4D3/LuaSnip', dest: 'LuaSnip' }
+    - { repo: 'https://github.com/hrsh7th/nvim-cmp', dest: 'nvim-cmp' }
+    - { repo: 'https://github.com/williamboman/nvim-lsp-installer', dest: 'nvim-lsp-installer' }
+    - { repo: 'https://github.com/neovim/nvim-lspconfig', dest: 'nvim-lspconfig' }
+    - { repo: 'https://github.com/nvim-lua/plenary.nvim', dest: 'plenary.nvim' }
+    - { repo: 'https://github.com/nvim-lua/popup.nvim', dest: 'popup.nvim' }
+    - { repo: 'https://github.com/simrat39/rust-tools.nvim', dest: 'rust-tools.nvim' }
+    - { repo: 'https://github.com/nvim-telescope/telescope.nvim', dest: 'telescope.nvim' }
+    - { repo: 'https://github.com/junegunn/vim-easy-align', dest: 'vim-easy-align' }
+    - { repo: 'https://github.com/hrsh7th/vim-vsnip', dest: 'vim-vsnip' }
 
 - name: Git configs
   shell: |

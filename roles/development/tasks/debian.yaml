@@ -1,7 +1,8 @@
-- name: Add specified repository into sources list
+- name: Add neovim repository into sources list
   ansible.builtin.apt_repository:
     repo: ppa:neovim-ppa/stable
     state: present
+  become: true
 
 - name: Install Debian Packages
   apt:
@@ -11,10 +12,10 @@
       - blt-dev
       - build-essential
       - cargo
-      - clang-9
-      - clang-format-9
-      - clang-tidy-9
-      - clang-tools-9
+      - clang-12
+      - clang-format-12
+      - clang-tidy-12
+      - clang-tools-12
       - diffstat
       - docutils-common
       - golang
@@ -22,7 +23,7 @@
       - liblz-dev
       - libbz2-dev
       - libcanberra-gtk-module
-      - libclang-9-dev
+      - libclang-12-dev
       - libedit-dev
       - libffi-dev
       - liblzma-dev
@@ -31,10 +32,15 @@
       - libncursesw5-dev
       - libreadline-dev
       - libsqlite3-dev
-      - lldb-9
+      - lldb-12
       - make
       - neovim
+      - neovim-qt
       - net-tools
+      - npm
+      - nodejs
+      - python2
+      - python3
       - snapd
       - virtualenv
       - zlib1g-dev

@@ -17,8 +17,6 @@ let &shiftwidth=g:tabsize
 
 set hlsearch incsearch
 
-set shell=powershell
-
 let g:mapleader=','
 let g:maplocalleader='-'
 
@@ -63,14 +61,10 @@ if !&diff
   \ }
   let g:ale_fixers = {
   \ 'javascript': ['eslint'],
-  \ 'powershell': ['trim_whitespace', 'remove_trailing_lines'],
   \ 'python': ['black'],
   \ 'rust': ['rustfmt', 'trim_whitespace', 'remove_trailing_lines']
   \ }
   let g:ale_fix_on_save = 1
-
-  let g:ale_powershell_powershell_executable = 'powershell.exe'
-  let g:ale_powershell_psscriptanalyzer_executable = 'powershell.exe'
 
   let g:ale_rust_rustfmt_options = '--edition 2021'
   let g:ale_rust_cargo_use_clippy = 1
@@ -236,4 +230,3 @@ set statusline +=%1*%6o%*               "current total character number
 set statusline +=%2*\ \ %3P             "percentage through file
 
 au GUIEnter * simalt ~x
-
